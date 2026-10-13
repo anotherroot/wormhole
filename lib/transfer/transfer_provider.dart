@@ -5,6 +5,7 @@ class TransferProvider with ChangeNotifier {
   final List<Function(String name, String path)> _sendFolderHandlers = [];
   final List<void Function(String text)> _sendTextHandlers = [];
   final List<void Function(String passphrase)> _receiveHandlers = [];
+  final List<void Function()> _receiveAnotherHandlers = [];
 
   TransferProvider();
 
@@ -24,6 +25,14 @@ class TransferProvider with ChangeNotifier {
 
   void addOnReceiveListener(void Function(String passphrase) listener) {
     _receiveHandlers.add(listener);
+  }
+
+  void addOnReceiveAnotherListener(void Function() listener) {
+    _receiveAnotherHandlers.add(listener);
+  }
+
+  void removeOnReceiveAnotherListener(void Function() listener) {
+    _receiveAnotherHandlers.remove(listener);
   }
 
   void sendFiles(String name, List<String> paths) {
@@ -47,6 +56,13 @@ class TransferProvider with ChangeNotifier {
   void receiveFile(String passphrase) {
     for (final h in _receiveHandlers) {
       h(passphrase);
+    }
+  }
+
+  /// A receive finished and the user wants to receive another file.
+  void receiveAnother() {
+    for (final h in _receiveAnotherHandlers) {
+      h();
     }
   }
 }

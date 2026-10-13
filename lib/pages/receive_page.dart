@@ -17,6 +17,7 @@ class ReceivePage extends StatefulWidget {
 class _ReceivePageState extends State<ReceivePage> {
   TextEditingController controller = TextEditingController();
   String? errorText;
+  late final TransferProvider _transfer;
 
   _ReceivePageState() {
     controller.addListener(() {
@@ -32,6 +33,19 @@ class _ReceivePageState extends State<ReceivePage> {
             TextPosition(offset: controller.text.length));
       }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _transfer = Provider.of<TransferProvider>(context, listen: false);
+    _transfer.addOnReceiveAnotherListener(controller.clear);
+  }
+
+  @override
+  void dispose() {
+    _transfer.removeOnReceiveAnotherListener(controller.clear);
+    super.dispose();
   }
 
   @override

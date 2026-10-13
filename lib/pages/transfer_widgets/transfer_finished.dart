@@ -4,9 +4,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_close_app/flutter_close_app.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../transfer/transfer_provider.dart';
 import '../../widgets/icon_text_button.dart';
 
 class ReceiveFinished extends StatelessWidget {
@@ -60,8 +62,11 @@ class ReceiveFinished extends StatelessWidget {
           ),
           const SizedBox(height: 15),
           TextButton.icon(
-            onPressed: () =>
-                Navigator.of(context).popUntil((route) => route.isFirst),
+            onPressed: () {
+              Provider.of<TransferProvider>(context, listen: false)
+                  .receiveAnother();
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
             icon: const Icon(Icons.arrow_back),
             label: Text(AppLocalizations.of(context)!
                 .transfer_finished_receive_another),
