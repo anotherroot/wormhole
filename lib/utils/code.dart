@@ -1,3 +1,5 @@
+import 'pgp_words.dart';
+
 // regex to match code validity
 final RegExp _regex = RegExp(r'^\d+-[^\s]*$');
 
@@ -24,4 +26,13 @@ String? passphraseFromTransferUri(Uri uri) {
     return null;
   }
   return uri.path;
+}
+
+/// Whether [text] is exactly a code as wormhole clients make them: a number
+/// and two or more words of the word list, like `7-guitarist-revenge`.
+bool isWordlistCode(String text) {
+  final parts = text.split('-');
+  return parts.length >= 3 &&
+      RegExp(r'^\d+$').hasMatch(parts.first) &&
+      parts.skip(1).every(pgpWords.contains);
 }

@@ -29,6 +29,7 @@ class Settings {
   static const _transitUrl = 'TRANSITURL';
   static const _askForFolder = 'ASKFORFOLDER';
   static const _hapticFeedback = 'HAPTICFEEDBACK';
+  static const _lastReceiveCode = 'LASTRECEIVECODE';
 
   static Future<void> setRendezvousUrl(String? value) async {
     await _setField(value, _rendezvousUrl);
@@ -56,6 +57,12 @@ class Settings {
 
   static Future<void> setHapticFeedback(bool value) async {
     await _setField(value, _hapticFeedback);
+  }
+
+  /// The code of the last receive, so a code on the clipboard isn't received
+  /// twice.
+  static Future<void> setLastReceiveCode(String value) async {
+    await _setField(value, _lastReceiveCode);
   }
 
   static Future<void> setTheme(ThemeType theme) async {
@@ -105,6 +112,11 @@ class Settings {
   static Future<bool> getHapticFeedback() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_hapticFeedback) ?? Defaults.hapticFeedback;
+  }
+
+  static Future<String?> getLastReceiveCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastReceiveCode);
   }
 
   /// get current theme : true if darkmode

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../settings/settings.dart';
 import '../transfer/transfer_provider.dart';
 import '../utils/code.dart';
 import '../widgets/icon_text_button.dart';
@@ -14,10 +15,14 @@ class ReceivePage extends StatefulWidget {
   State<ReceivePage> createState() => _ReceivePageState();
 }
 
-class _ReceivePageState extends State<ReceivePage> {
+class _ReceivePageState extends State<ReceivePage> with WidgetsBindingObserver {
   TextEditingController controller = TextEditingController();
   String? errorText;
   late final TransferProvider _transfer;
+
+  /// Whether this page is in front: its tab is selected and no transfer page
+  /// is pushed on top of it.
+  bool _shown = false;
 
   _ReceivePageState() {
     controller.addListener(() {
@@ -40,10 +45,30 @@ class _ReceivePageState extends State<ReceivePage> {
     super.initState();
     _transfer = Provider.of<TransferProvider>(context, listen: false);
     _transfer.addOnReceiveAnotherListener(controller.clear);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shown =
+        Visibility.of(context) && (ModalRoute.of(context)?.isCurrent ?? true);
+    if (shown && !_shown) {
+      _receiveCodeFromClipboard();
+    }
+    _shown = shown;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _shown) {
+      _receiveCodeFromClipboard();
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _transfer.removeOnReceiveAnotherListener(controller.clear);
     super.dispose();
   }
@@ -125,6 +150,25 @@ class _ReceivePageState extends State<ReceivePage> {
       return;
     }
 
+    Settings.setLastReceiveCode(text);
     Provider.of<TransferProvider>(context, listen: false).receiveFile(text);
+  }
+
+  /// Receive a code someone copied to send it here, like the code of the sender.
+  /// Only into an empty field, and not the code of the last receive, which is
+  /// often still on the clipboard.
+  Future<void> _receiveCodeFromClipboard() async {
+    if (controller.text.isNotEmpty) return;
+    final code = (await Clipboard.getData(Clipboard.kTextPlain))?.text?.trim();
+    if (code == null ||
+        !isWordlistCode(code) ||
+        code == await Settings.getLastReceiveCode() ||
+        !mounted ||
+        !_shown ||
+        controller.text.isNotEmpty) {
+      return;
+    }
+    controller.text = code;
+    _onReceiveButtonClick();
   }
 }
